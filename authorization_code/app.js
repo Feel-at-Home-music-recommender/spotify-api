@@ -1,3 +1,5 @@
+const axios = require('axios');
+
 /**
  * This is an example of a basic node.js script that performs
  * the Authorization Code oAuth2 flow to authenticate against
@@ -12,6 +14,8 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 
 var client_id = 'ef33b86f6f6847b89281232374f72ec8'; // Your client id
 var client_secret = 'e537348df7a04ba090f5ea1b750c76f8'; // Your secret
@@ -38,7 +42,13 @@ var app = express();
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
-   .use(cookieParser());
+   .use(cookieParser())
+   .use(session({
+     secret: 'keyboard cat',
+     resave: false,
+     saveUninitialized: true,
+     stroe: new FileStore()
+   }));
 
 app.get('/login', function(req, res) {
 
@@ -100,16 +110,25 @@ app.get('/callback', function(req, res) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
+          // console.log(body);
         });
+        console.log(access_token);
 
         // we can also pass the token to the browser to make requests from there
         // window.location.href = 'http://localhost:8077';
-        res.redirect('http://localhost:8077/' +
-          querystring.stringify({
+        axios.get('https://api.spotify.com/v1/me', {
+          params: {
             access_token: access_token,
-            refresh_token: refresh_token
-          }));
+          },
+        })
+        .then(response => {
+          res.send(response.data);
+        });
+        // res.redirect('http://localhost:8077/login/spotify?' +
+        //   querystring.stringify({
+        //     access_token: access_token,
+        //     refresh_token: refresh_token
+        //   }));
       } else {
         res.redirect('/#' +
           querystring.stringify({
