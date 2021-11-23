@@ -44,10 +44,13 @@ app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser())
    .use(session({
-     secret: 'keyboard cat',
+     secret: "asdfasdf",
      resave: false,
-     saveUninitialized: true,
-     stroe: new FileStore()
+     saveUninitialized: false,
+     cookie: {
+       httpOnly: true,
+       secure: false,
+     }
    }));
 
 app.get('/login', function(req, res) {
@@ -116,15 +119,28 @@ app.get('/callback', function(req, res) {
 
         // we can also pass the token to the browser to make requests from there
         // window.location.href = 'http://localhost:8077';
+        var params = {
+          access_token: access_token,
+          data: null,
+        }
         axios.get('https://api.spotify.com/v1/me', {
           params: {
             access_token: access_token,
           },
         })
         .then(response => {
-          res.send(response.data);
+          params.data = response.data;
+          req.session.user = params;
+          // res.json(JSON.stringify(response.data));
+          // console.log(object);
+          var obj = JSON.stringify(params);
+          res.cookie('user', obj);
+          req.session.save(function() {
+            res.redirect('http://localhost:8080');
+          })
         });
-        // res.redirect('http://localhost:8077/login/spotify?' +
+        
+        // res.redirect('/#' +
         //   querystring.stringify({
         //     access_token: access_token,
         //     refresh_token: refresh_token
