@@ -167,6 +167,9 @@ app.get('/callback', function (req, res) {
           })
           .then(response => {
             user.data.member_id = response.data.member_id;
+            user.data.followers = response.data.followers;
+            user.data.following = response.data.following;
+            console.log(response.data);
             res.cookie('user', JSON.stringify(user));
           })
           .finally(() => {
