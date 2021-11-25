@@ -159,7 +159,7 @@ app.get('/callback', function (req, res) {
             }
           })
           .then(data => {
-            return axios.post("http://localhost:8077/login", data, {
+            return axios.post("http://localhost:8077/user/login", data, {
               headers: {
                 "Content-Type": `application/json`,
               },
